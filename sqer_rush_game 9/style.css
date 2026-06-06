@@ -1,0 +1,77 @@
+:root {
+  --bg: #060807;
+  --panel: #111713;
+  --line: #28342a;
+  --gold: #f3bd52;
+  --green: #4fd15e;
+  --text: #f3e7c6;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top, rgba(50, 90, 58, .25), transparent 45%),
+    var(--bg);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  overflow: hidden;
+}
+.wrap {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+}
+.topbar {
+  min-height: 44px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: rgba(12, 18, 14, .86);
+  border: 1px solid var(--line);
+  box-shadow: 0 0 24px rgba(0,0,0,.35);
+  border-radius: 10px;
+}
+.topbar strong {
+  color: var(--gold);
+  font-size: 18px;
+  letter-spacing: .5px;
+}
+.topbar span {
+  opacity: .78;
+  margin-left: 10px;
+  font-size: 13px;
+}
+.keys {
+  opacity: .75;
+  font-size: 12px;
+  text-align: right;
+}
+.game-shell {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: min(100%, calc((100vh - 74px) * 1.333333));
+  height: auto;
+  border: 1px solid #1f2b22;
+  border-radius: 10px;
+  background: #020302;
+  box-shadow: 0 20px 70px rgba(0,0,0,.6);
+  image-rendering: auto;
+}
+@media (max-width: 900px) {
+  .topbar { align-items: flex-start; flex-direction: column; }
+  .keys { text-align: left; }
+}
+
+canvas:focus { outline: 2px solid rgba(79, 209, 94, .75); outline-offset: 3px; }

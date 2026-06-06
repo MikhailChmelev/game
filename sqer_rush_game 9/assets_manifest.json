@@ -1,0 +1,86 @@
+{
+  "map": "assets/map.png",
+  "waitress_frames": {
+    "idle_down": "assets/sprites/waitress/idle_down.png",
+    "idle_up": "assets/sprites/waitress/idle_up.png",
+    "idle_left": "assets/sprites/waitress/idle_left.png",
+    "idle_right": "assets/sprites/waitress/idle_right.png",
+    "walk_down_0": "assets/sprites/waitress/walk_down_0.png",
+    "walk_down_1": "assets/sprites/waitress/walk_down_1.png",
+    "walk_down_2": "assets/sprites/waitress/walk_down_2.png",
+    "walk_up_0": "assets/sprites/waitress/walk_up_0.png",
+    "walk_up_1": "assets/sprites/waitress/walk_up_1.png",
+    "walk_up_2": "assets/sprites/waitress/walk_up_2.png",
+    "walk_left_0": "assets/sprites/waitress/walk_left_0.png",
+    "walk_left_1": "assets/sprites/waitress/walk_left_1.png",
+    "walk_left_2": "assets/sprites/waitress/walk_left_2.png",
+    "walk_right_0": "assets/sprites/waitress/walk_right_0.png",
+    "walk_right_1": "assets/sprites/waitress/walk_right_1.png",
+    "walk_right_2": "assets/sprites/waitress/walk_right_2.png",
+    "carry_down": "assets/sprites/waitress/carry_down.png",
+    "carry_up": "assets/sprites/waitress/carry_up.png",
+    "carry_left": "assets/sprites/waitress/carry_left.png",
+    "carry_right": "assets/sprites/waitress/carry_right.png"
+  },
+  "food_icons": {
+    "burger": "assets/food/burger.png",
+    "pizza": "assets/food/pizza.png",
+    "steak": "assets/food/steak.png",
+    "sushi": "assets/food/sushi.png",
+    "salad": "assets/food/salad.png",
+    "soup": "assets/food/soup.png",
+    "pasta": "assets/food/pasta.png",
+    "ribs": "assets/food/ribs.png",
+    "cake": "assets/food/cake.png",
+    "cocktail": "assets/food/cocktail.png",
+    "coffee": "assets/food/coffee.png",
+    "fries": "assets/food/fries.png",
+    "taco": "assets/food/taco.png",
+    "ramen": "assets/food/ramen.png",
+    "lemonade": "assets/food/lemonade.png",
+    "fish": "assets/food/fish.png"
+  },
+  "sheets": {
+    "waitress": "assets/sheets/waitress_sheet.png",
+    "customers": "assets/sheets/customers_sheet.png",
+    "tileset_props": "assets/sheets/tileset_props.png",
+    "food_ui": "assets/sheets/food_ui_sheet.png",
+    "concept": "assets/concept_sheet.png"
+  },
+  "source_resolution": {
+    "map": [
+      1448,
+      1086
+    ]
+  },
+  "bartender_frames": {
+    "idle_down": "assets/sprites/bartender/idle_down.png",
+    "idle_up": "assets/sprites/bartender/idle_up.png",
+    "idle_left": "assets/sprites/bartender/idle_left.png",
+    "idle_right": "assets/sprites/bartender/idle_right.png",
+    "walk_down_0": "assets/sprites/bartender/walk_down_0.png",
+    "walk_down_1": "assets/sprites/bartender/walk_down_1.png",
+    "walk_down_2": "assets/sprites/bartender/walk_down_2.png",
+    "walk_up_0": "assets/sprites/bartender/walk_up_0.png",
+    "walk_up_1": "assets/sprites/bartender/walk_up_1.png",
+    "walk_up_2": "assets/sprites/bartender/walk_up_2.png",
+    "walk_left_0": "assets/sprites/bartender/walk_left_0.png",
+    "walk_left_1": "assets/sprites/bartender/walk_left_1.png",
+    "walk_left_2": "assets/sprites/bartender/walk_left_2.png",
+    "walk_right_0": "assets/sprites/bartender/walk_right_0.png",
+    "walk_right_1": "assets/sprites/bartender/walk_right_1.png",
+    "walk_right_2": "assets/sprites/bartender/walk_right_2.png",
+    "carry_down": "assets/sprites/bartender/carry_down.png",
+    "carry_up": "assets/sprites/bartender/carry_up.png",
+    "carry_left": "assets/sprites/bartender/carry_left.png",
+    "carry_right": "assets/sprites/bartender/carry_right.png"
+  },
+  "version": "0.3",
+  "gameplay": {
+    "phases": [
+      "hall_waiter",
+      "bar_bartender"
+    ],
+    "notes": "Hall orders first, then bar orders."
+  }
+}
