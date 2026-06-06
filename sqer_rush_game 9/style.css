@@ -67,7 +67,7 @@ canvas {
   border-radius: 10px;
   background: #020302;
   box-shadow: 0 20px 70px rgba(0,0,0,.6);
-  image-rendering: auto;
+  image-rendering: pixelated;
 }
 @media (max-width: 900px) {
   .topbar { align-items: flex-start; flex-direction: column; }

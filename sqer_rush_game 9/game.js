@@ -44,6 +44,24 @@
     { id: 8, name: '08', x: 1255, y: 715, r: 136 },
   ];
 
+  // Banquet uses its own interaction map: four guests above and below the table,
+  // plus one guest at each end. Coordinates are deliberately aligned to a 4 px grid.
+  const BANQUET_GUESTS = [
+    { id: 201, name: '01', x: 610, y: 344, side: 'top', tone: 0 },
+    { id: 202, name: '02', x: 725, y: 344, side: 'top', tone: 1 },
+    { id: 203, name: '03', x: 840, y: 344, side: 'top', tone: 2 },
+    { id: 204, name: '04', x: 955, y: 344, side: 'top', tone: 3 },
+    { id: 205, name: '05', x: 610, y: 736, side: 'bottom', tone: 3 },
+    { id: 206, name: '06', x: 725, y: 736, side: 'bottom', tone: 2 },
+    { id: 207, name: '07', x: 840, y: 736, side: 'bottom', tone: 1 },
+    { id: 208, name: '08', x: 955, y: 736, side: 'bottom', tone: 0 },
+    { id: 209, name: '09', x: 500, y: 540, side: 'left', tone: 2 },
+    { id: 210, name: '10', x: 1065, y: 540, side: 'right', tone: 1 },
+  ].map(g => ({ ...g, r: 92 }));
+  const BANQUET_TABLE = { x: 548, y: 400, w: 468, h: 280 };
+  const BANQUET_SOURCE_ZONE = { x: 438, y: 850, w: 300, h: 100 };
+  const BANQUET_BOUNDS = { x: 420, y: 245, w: 690, h: 720 };
+
   const BAR_GUESTS = [
     { id: 101, name: 'B1', x: 162, y: 756, r: 165, sprite: 'phone_customer', drawX: 162, drawY: 862, h: 112 },
     { id: 102, name: 'B2', x: 274, y: 756, r: 165, sprite: 'impatient_customer', drawX: 274, drawY: 862, h: 112 },
@@ -163,39 +181,54 @@
   ];
 
   const BANQUET_WAVES = [
-    {
-      name: 'Волна 1 · Напитки',
-      orders: [
-        { targetId: 1, items: ['lemonade', 'lemonade'], patience: 80 },
-        { targetId: 2, items: ['cocktail', 'coffee'], patience: 80 },
-        { targetId: 3, items: ['lemonade', 'coffee'], patience: 80 },
-      ],
-    },
-    {
-      name: 'Волна 2 · Закуски',
-      orders: [
-        { targetId: 1, items: ['salad', 'sushi'], patience: 82 },
-        { targetId: 2, items: ['salad', 'fish'], patience: 82 },
-        { targetId: 3, items: ['fries', 'sushi'], patience: 82 },
-      ],
-    },
-    {
-      name: 'Волна 3 · Горячее',
-      orders: [
-        { targetId: 4, items: ['steak', 'pasta'], patience: 75 },
-        { targetId: 5, items: ['fish', 'pasta'], patience: 75 },
-        { targetId: 6, items: ['ribs', 'steak'], patience: 75 },
-      ],
-    },
-    {
-      name: 'Волна 4 · Десерт',
-      orders: [
-        { targetId: 4, items: ['cake'], patience: 70 },
-        { targetId: 5, items: ['cake'], patience: 70 },
-        { targetId: 6, items: ['cake', 'coffee'], patience: 70 },
-      ],
-    },
+    { name: 'Волна 1 · Напитки', orders: [
+      { targetId: 201, items: ['lemonade', 'coffee'], patience: 92 },
+      { targetId: 204, items: ['cocktail'], patience: 92 },
+      { targetId: 205, items: ['lemonade'], patience: 92 },
+      { targetId: 208, items: ['coffee'], patience: 92 },
+      { targetId: 210, items: ['cocktail'], patience: 92 },
+    ]},
+    { name: 'Волна 2 · Закуски', orders: [
+      { targetId: 202, items: ['salad', 'sushi'], patience: 96 },
+      { targetId: 203, items: ['fish'], patience: 96 },
+      { targetId: 206, items: ['fries'], patience: 96 },
+      { targetId: 209, items: ['sushi'], patience: 96 },
+    ]},
+    { name: 'Волна 3 · Горячее', orders: [
+      { targetId: 201, items: ['steak'], patience: 90 },
+      { targetId: 204, items: ['pasta'], patience: 90 },
+      { targetId: 207, items: ['fish', 'pasta'], patience: 90 },
+      { targetId: 208, items: ['ribs'], patience: 90 },
+      { targetId: 210, items: ['steak'], patience: 90 },
+    ]},
+    { name: 'Волна 4 · Десерт', orders: [
+      { targetId: 202, items: ['cake', 'coffee'], patience: 82 },
+      { targetId: 205, items: ['cake'], patience: 82 },
+      { targetId: 206, items: ['cake'], patience: 82 },
+      { targetId: 209, items: ['coffee'], patience: 82 },
+    ]},
   ];
+
+  const SERVICE_EVENTS = [
+    { id: 'cold', title: 'Жалоба гостя', prompt: '«Блюдо холодное. Можно что-то сделать?»', correct: 1, options: ['Кухня занята, придётся подождать.', 'Извините. Сейчас заменю блюдо и уточню время подачи.', 'Это вопрос к кухне, не ко мне.'] },
+    { id: 'waiting', title: 'Гость давно ждёт', prompt: '«Мы давно ждём заказ.»', correct: 1, options: ['Все ждут, вы не одни.', 'Понимаю. Проверю статус и сразу вернусь с точным временем.', 'Заказ ещё готовится, больше сказать нечего.'] },
+    { id: 'wrong', title: 'Не та позиция', prompt: '«Кажется, принесли не то.»', correct: 1, options: ['Можно всё равно попробовать.', 'Извините. Уберу позицию и быстро принесу верную.', 'Так записано в системе.'] },
+    { id: 'water', title: 'Просьба о воде', prompt: '«Можно, пожалуйста, воды?»', correct: 0, options: ['Конечно. Принесу и проверю воду у всего стола.', 'Вода есть в баре.', 'После горячего, если не забуду.'] },
+    { id: 'cutlery', title: 'Замена прибора', prompt: '«Можно заменить вилку?»', correct: 1, options: ['Протрите салфеткой.', 'Конечно, одну минуту — принесу чистый прибор.', 'Это не мешает есть.'] },
+    { id: 'ingredients', title: 'Состав блюда', prompt: '«Подскажите, здесь есть орехи?»', correct: 1, options: ['Скорее всего нет.', 'Сейчас уточню у кухни, с аллергенами не угадываем.', 'Если не видно, значит нет.'] },
+    { id: 'vip', title: 'VIP просит рекомендацию', prompt: '«Что посоветуете к горячему?»', correct: 0, vipOnly: true, options: ['Предложу пару вариантов под выбранное блюдо и ваши предпочтения.', 'Самое дорогое обычно лучше.', 'Посмотрите меню напитков.'] },
+    { id: 'lyuba', title: 'Проверка Любы', prompt: '«Стол четыре готов к следующей подаче?»', correct: 1, options: ['Наверное.', 'Проверю приборы, воду и готовность кухни, затем подтвержу.', 'Пусть подождут.'] },
+  ];
+
+  const BANQUET_COMPLAINT = {
+    id: 'banquetComplaint', title: 'Сложная ситуация · Гость 07',
+    prompt: '«Это блюдо не то, что мы ожидали. И оно холодное.»', correct: 0,
+    options: [
+      'Извините, сейчас уберу блюдо, передам на кухню и предложу комплимент от заведения.',
+      'Ну все едят, значит нормально.',
+      'Я просто официант, это не ко мне.'
+    ]
+  };
 
   const LEVELS = [
     { shift: 1, name: 'Первый столик', phase: 'hall', time: 75, targetIds: [1], fixedOrders: [{ targetId: 1, items: ['burger'], patience: 58 }], cook: { min: 2, max: 3 }, description: 'Обучение: один стол, одно блюдо.', preScene: CUTSCENES.day1Intro },
@@ -265,12 +298,22 @@
     pendingLevelIndex: null,
     quiz: null,
     quizScore: 0,
-    banquetDialogScore: 0,
     banquetWave: 0,
     routeDistance: 0,
     runnerUses: 0,
-    runnerEffect: null,
+    runner: null,
+    runnerNotice: null,
     bark: null,
+    serviceDialog: null,
+    serviceEventTimer: 0,
+    serviceEventsShown: 0,
+    serviceAnswered: 0,
+    serviceCorrect: 0,
+    badReview: false,
+    banquetComplaintShown: false,
+    banquetComplaintResolved: false,
+    banquetCompliment: false,
+    banquetPendingAdvance: false,
     npcs: null,
     muted: false,
     paused: false,
@@ -307,12 +350,12 @@
   const pick = (arr) => arr[rndInt(arr.length)];
   function shuffle(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = rndInt(i + 1); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
   const foodName = (id) => FOOD_BY_ID[id]?.name || id;
-  const targetKindName = () => state.phase === 'hall' ? 'Стол' : 'Бар';
+  const targetKindName = () => state.level?.isBanquet ? 'Гость' : state.phase === 'hall' ? 'Стол' : 'Бар';
   const phaseName = () => state.phase === 'hall' ? 'зал' : 'бар';
   const roleName = () => state.phase === 'hall' ? 'официант' : 'бармен';
-  const sourceName = () => state.phase === 'hall' ? 'раздаче' : 'барной станции';
-  const currentTargets = () => state.phase === 'hall' ? TABLES : BAR_GUESTS;
-  const currentSourceZone = () => state.phase === 'hall' ? PASS_INTERACT_ZONE : BAR_PREP_ZONE;
+  const sourceName = () => state.level?.isBanquet ? 'сервисной станции' : state.phase === 'hall' ? 'раздаче' : 'барной станции';
+  const currentTargets = () => state.level?.isBanquet ? BANQUET_GUESTS : state.phase === 'hall' ? TABLES : BAR_GUESTS;
+  const currentSourceZone = () => state.level?.isBanquet ? BANQUET_SOURCE_ZONE : state.phase === 'hall' ? PASS_INTERACT_ZONE : BAR_PREP_ZONE;
   const shiftBounds = (shift) => shift === 1 ? { start: 0, end: 8 } : { start: 9, end: LEVELS.length - 1 };
 
   function playTone(freq = 440, dur = 0.07, type = 'square', gain = 0.05) {
@@ -430,14 +473,27 @@
     state.message = '';
     state.messageTime = 0;
     state.routeDistance = 0;
-    state.runnerEffect = null;
+    state.runner = null;
+    state.runnerNotice = null;
     state.bark = null;
+    state.serviceDialog = null;
+    state.serviceEventTimer = randomRange(16, 24);
+    state.serviceEventsShown = 0;
+    state.serviceAnswered = 0;
+    state.serviceCorrect = 0;
+    state.badReview = false;
+    state.banquetComplaintShown = false;
+    state.banquetComplaintResolved = false;
+    state.banquetCompliment = false;
+    state.banquetPendingAdvance = false;
     state.paused = false;
     state.banquetWave = 0;
 
     state.player = state.phase === 'bar'
       ? { x: 285, y: 625, dir: 'down', speed: 230, moving: false, stepTime: 0 }
-      : { x: 725, y: 930, dir: 'up', speed: 245, moving: false, stepTime: 0 };
+      : state.level.isBanquet
+        ? { x: 780, y: 925, dir: 'up', speed: 245, moving: false, stepTime: 0 }
+        : { x: 725, y: 930, dir: 'up', speed: 245, moving: false, stepTime: 0 };
 
     if (state.level.isBanquet) {
       state.orders = buildBanquetWave(0);
@@ -454,18 +510,25 @@
 
   function initNPCs() {
     if (state.level.shift !== 2 || state.phase !== 'hall') { state.npcs = null; return; }
+    const banquet = state.level.isBanquet;
     state.npcs = {
       lyuba: {
-        x: 1220, y: 290, speed: 92, timer: 0, barkTimer: 10,
-        path: [{x:1220,y:290},{x:930,y:350},{x:730,y:520},{x:890,y:770},{x:1180,y:710},{x:1260,y:520}],
-        pathIndex: 0,
-        barks: ['Где улыбка?', 'Стол семь уже нервничает.', 'Поднос ровнее держим.', 'Сервис, а не квест на выживание.'],
+        x: banquet ? 1080 : 1210, y: banquet ? 820 : 340, speed: 86, barkTimer: 8,
+        path: banquet
+          ? [{x:1080,y:820},{x:1080,y:300},{x:470,y:300},{x:470,y:820},{x:1080,y:820}]
+          : [{x:1210,y:340},{x:1120,y:340},{x:1120,y:900},{x:850,y:900},{x:850,y:660},{x:850,y:490},{x:850,y:340}],
+        pathIndex: 0, pauseTime: 0, dir: 'left', walkTime: 0,
+        barks: ['Где улыбка?', 'Стол семь уже смотрит на тебя как на ошибку.', 'Поднос ровнее держим.', 'Сервис держим, темп не роняем.'],
         speech: '', speechTime: 0,
       },
       mikhail: {
-        x: 1180, y: 855, home: {x:1180,y:855}, speed: 78, timer: 0, patrol: false, patrolIndex: 0, barkTimer: 18,
-        path: [{x:1180,y:855},{x:1030,y:770},{x:900,y:620},{x:1080,y:470}],
-        barks: ['Я сейчас табличку по ошибкам открою.', 'Кухня быстрее тебя. Интересное наблюдение.', 'Я не злюсь. Я анализирую. Злостно.', 'Работаем собраннее. Это не пожелание.'],
+        x: banquet ? 1090 : 1140, y: banquet ? 900 : 900,
+        home: banquet ? {x:1090,y:900} : {x:1140,y:900}, speed: 74, timer: 0,
+        patrol: false, patrolIndex: 0, dir: 'left', walkTime: 0,
+        path: banquet
+          ? [{x:1090,y:900},{x:1080,y:820},{x:1080,y:300},{x:780,y:280},{x:470,y:300},{x:470,y:820},{x:780,y:880},{x:1090,y:900}]
+          : [{x:1140,y:900},{x:1120,y:900},{x:1120,y:340},{x:850,y:340},{x:850,y:660},{x:850,y:900},{x:1140,y:900}],
+        barks: ['Я сейчас табличку по ошибкам открою.', 'Кухня быстрее тебя. Интересное наблюдение.', 'Я не злюсь. Я анализирую.', 'Работаем собраннее. Это не пожелание.'],
         speech: '', speechTime: 0,
       }
     };
@@ -503,7 +566,7 @@
   }
 
   function makeOrder(level, targetId, itemIds, orderIndex, spec = {}) {
-    const target = (level.phase === 'hall' ? TABLES : BAR_GUESTS).find(t => t.id === targetId);
+    const target = (level.isBanquet ? BANQUET_GUESTS : level.phase === 'hall' ? TABLES : BAR_GUESTS).find(t => t.id === targetId);
     const guestType = spec.guestType || 'normal';
     const uid = `${level.phase}_${state.levelIndex}_${targetId}_${orderIndex}_${Math.random().toString(36).slice(2, 7)}`;
     const patienceMax = spec.patience || 80;
@@ -547,6 +610,12 @@
 
   function blocked(px, py) {
     const foot = { x: px - 18, y: py - 14, w: 36, h: 28 };
+    if (state.level?.isBanquet) {
+      const b = BANQUET_BOUNDS;
+      if (foot.x < b.x || foot.y < b.y || foot.x + foot.w > b.x + b.w || foot.y + foot.h > b.y + b.h) return true;
+      const table = { x: BANQUET_TABLE.x - 30, y: BANQUET_TABLE.y - 34, w: BANQUET_TABLE.w + 60, h: BANQUET_TABLE.h + 68 };
+      return foot.x < table.x + table.w && foot.x + foot.w > table.x && foot.y < table.y + table.h && foot.y + foot.h > table.y;
+    }
     if (state.phase === 'bar') {
       const b = BAR_WORK_BOUNDS;
       return foot.x < b.x || foot.y < b.y || foot.x + foot.w > b.x + b.w || foot.y + foot.h > b.y + b.h;
@@ -586,27 +655,95 @@
 
   function useRunner() {
     if (state.mode !== 'playing' || state.selectedShift !== 2) return;
-    if (state.runnerUses <= 0) { message('Раннер уже отработал свои две жизни.', 1); playTone(160, 0.05); return; }
+    if (state.runner) { message('Раннер уже в зале.', 0.9); return; }
+    if (state.runnerUses <= 0) { message('Вызовы раннера закончились.', 1); playTone(160, 0.05); return; }
     if (state.phase !== 'hall') { message('Раннер помогает по залу, не за баром.', 1); playTone(160, 0.05); return; }
     const candidates = state.orders.filter(o => !o.done);
     if (!candidates.length) return;
-    candidates.sort((a, b) => (a.patience / a.patienceMax) - (b.patience / b.patienceMax));
+    const urgency = (o) => {
+      const burning = o.items.filter(it => it.ready && !it.done && !it.picked && state.levelElapsed - it.readyAt > 7).length;
+      return (o.patience / o.patienceMax) - burning * 0.22;
+    };
+    candidates.sort((a, b) => urgency(a) - urgency(b));
     const order = candidates[0];
+    const target = targetById(order.targetId);
+    if (!target) return;
     state.runnerUses -= 1;
-    const t = targetById(order.targetId);
-    for (const item of order.items) {
-      item.done = true; item.picked = false; item.ready = false;
-    }
-    state.inventory = state.inventory.filter(it => it.orderUid !== order.uid);
-    order.done = true;
-    state.score += 180;
-    state.delivered += order.items.length;
-    state.levelDelivered += order.items.length;
-    state.runnerEffect = { x: t.x, y: t.y, time: 1.2, targetName: t.name };
-    message(`Раннер закрыл ${targetKindName()} ${t.name}. Красиво, быстро, чужими руками.`, 1.25);
+    const start = state.level.isBanquet ? { x: 445, y: 900 } : { x: 575, y: 350 };
+    state.runner = {
+      x: start.x, y: start.y, dir: 'right', speed: 370, walkTime: 0,
+      orderUid: order.uid, targetId: order.targetId, targetName: target.name,
+      route: buildRunnerRoute(start, target), routeIndex: 0, phase: 'toTarget', wait: 0,
+    };
+    state.runnerNotice = { text: `Раннер → ${targetKindName().toLowerCase()} ${target.name}`, time: 2.2 };
+    message(`Раннер вызван. Осталось вызовов: ${state.runnerUses}`, 1.4);
     playTone(820, 0.08, 'square', 0.05);
-    if (state.level.isBanquet && state.orders.every(o => o.done)) advanceBanquetOrFinish();
-    else if (state.orders.every(o => o.done)) finishLevel();
+  }
+
+  function buildRunnerRoute(start, target) {
+    if (state.level.isBanquet) {
+      const left = { x: 470, y: target.side === 'top' ? 320 : 790 };
+      const right = { x: 1090, y: target.side === 'top' ? 320 : 790 };
+      const useLeft = target.x < 780;
+      const edge = useLeft ? left : right;
+      return [{x:start.x,y:start.y},{x:useLeft ? 470 : 1090,y:880},edge,{x:target.x,y:target.side === 'top' ? 320 : target.side === 'bottom' ? 790 : target.y}];
+    }
+    const top = {x:850,y:340};
+    const lane = target.x < 850 ? 560 : 1120;
+    const approachY = target.y < 500 ? 340 : target.y > 650 ? 900 : target.y;
+    return [{x:start.x,y:start.y},top,{x:lane,y:340},{x:lane,y:approachY},{x:target.x,y:approachY}];
+  }
+
+  function updateRunner(dt) {
+    const runner = state.runner;
+    if (!runner) return;
+    runner.walkTime += dt;
+    if (runner.phase === 'serving') {
+      runner.wait -= dt;
+      if (runner.wait <= 0) {
+        runner.phase = 'leaving';
+        const exit = state.level.isBanquet ? {x:445,y:900} : {x:575,y:350};
+        runner.route = buildRunnerExitRoute(runner, exit);
+        runner.routeIndex = 0;
+      }
+      return;
+    }
+    const point = runner.route[runner.routeIndex];
+    if (!point) {
+      if (runner.phase === 'toTarget') completeRunnerDelivery(runner);
+      else state.runner = null;
+      return;
+    }
+    moveNpcToward(runner, point, dt);
+    if (dist(runner.x, runner.y, point.x, point.y) < 12) runner.routeIndex += 1;
+  }
+
+  function buildRunnerExitRoute(runner, exit) {
+    if (state.level.isBanquet) {
+      const laneX = runner.x < 780 ? 470 : 1090;
+      return [{x:laneX,y:runner.y < 540 ? 320 : 790},{x:laneX,y:880},exit];
+    }
+    return [{x:runner.x < 850 ? 560 : 1120,y:runner.y},{x:850,y:340},exit];
+  }
+
+  function completeRunnerDelivery(runner) {
+    const order = state.orders.find(o => o.uid === runner.orderUid);
+    if (order && !order.done) {
+      const unfinished = order.items.filter(item => !item.done).length;
+      for (const item of order.items) { item.done = true; item.picked = false; item.ready = false; }
+      state.inventory = state.inventory.filter(it => it.orderUid !== order.uid);
+      order.done = true;
+      state.score += 180 + unfinished * 55;
+      state.delivered += unfinished;
+      state.levelDelivered += unfinished;
+      state.runnerNotice = { text: `Раннер закрыл ${targetKindName().toLowerCase()} ${runner.targetName} · осталось ${state.runnerUses}`, time: 3.4 };
+      message(`Раннер закрыл ${targetKindName().toLowerCase()} ${runner.targetName}`, 1.6);
+      playTone(980, 0.1, 'square', 0.055);
+    }
+    runner.phase = 'serving'; runner.wait = 0.65; runner.moving = false;
+    if (state.orders.every(o => o.done)) {
+      if (state.level.isBanquet) advanceBanquetOrFinish(); else finishLevel();
+    }
   }
 
   function interact() {
@@ -646,9 +783,79 @@
     if (option === q.correct) state.quizScore += 1;
     state.quiz.idx += 1;
     if (state.quiz.idx >= state.quiz.questions.length) {
-      state.banquetDialogScore = Math.round((state.quizScore / state.quiz.questions.length) * 100);
       beginGameplay(state.pendingLevelIndex);
     }
+  }
+
+  function openServiceDialog(event, targetId = null) {
+    if (state.mode !== 'playing' || state.serviceDialog) return;
+    const target = targetId ? targetById(targetId) : pick(state.orders.filter(o => !o.done))?.targetId;
+    state.serviceDialog = { ...event, targetId: typeof target === 'object' ? target.id : target };
+    state.mode = 'serviceDialog';
+    keys.clear();
+  }
+
+  function answerServiceDialog(option) {
+    if (state.mode !== 'serviceDialog' || !state.serviceDialog) return;
+    const event = state.serviceDialog;
+    const correct = option === event.correct;
+    const order = orderByTarget(event.targetId) || state.orders.find(o => !o.done);
+    state.serviceAnswered += 1;
+    if (correct) {
+      state.serviceCorrect += 1;
+      state.score += event.id === 'banquetComplaint' ? 420 : 140;
+      if (order) order.patience = Math.min(order.patienceMax, order.patience + order.patienceMax * 0.28);
+      if (event.id === 'banquetComplaint') {
+        state.banquetCompliment = true;
+        state.banquetComplaintResolved = true;
+        if (order) {
+          const dish = order.items.find(it => !it.done);
+          if (dish) { dish.done = true; dish.picked = false; dish.ready = false; state.inventory = state.inventory.filter(it => it.uid !== dish.uid); }
+          order.done = order.items.every(it => it.done);
+        }
+        message('Блюдо заменено, комплимент подан. Ситуация спасена.', 2.2);
+        if (state.npcs?.lyuba) npcSpeak(state.npcs.lyuba, 'Вот это уже сервис. Продолжаем.');
+      } else message('Гость успокоился. Терпение и чаевые выросли.', 1.6);
+      playTone(760, 0.09, 'square', 0.045);
+    } else {
+      state.levelMistakes += 1; state.mistakes += 1; state.combo = 0;
+      state.score = Math.max(0, state.score - (event.id === 'banquetComplaint' ? 260 : 90));
+      if (order) order.patience = Math.max(1, order.patience - order.patienceMax * 0.30);
+      if (event.id === 'banquetComplaint') {
+        state.badReview = true;
+        state.banquetComplaintResolved = true;
+        if (state.npcs?.mikhail) npcSpeak(state.npcs.mikhail, 'Отзыв уже в таблице. Красная строка.');
+        message('Плохой отзыв получен. Оценка «ХОРОШО» заблокирована.', 2.2);
+      } else message('Плохой ответ: терпение упало, ошибка записана.', 1.7);
+      playTone(120, 0.14, 'sawtooth', 0.06);
+    }
+    state.serviceDialog = null;
+    state.mode = 'playing';
+    if (event.id === 'banquetComplaint' && state.banquetPendingAdvance) {
+      state.banquetPendingAdvance = false;
+      if (state.orders.every(o => o.done)) setTimeout(() => advanceBanquetOrFinish(), 250);
+    }
+  }
+
+  function updateServiceEvents(dt) {
+    if (state.selectedShift !== 2 || state.level.isBanquet || state.phase !== 'hall') return;
+    if (state.serviceEventsShown >= 2 || state.levelElapsed < 12) return;
+    state.serviceEventTimer -= dt;
+    if (state.serviceEventTimer > 0) return;
+    const liveOrders = state.orders.filter(o => !o.done);
+    if (!liveOrders.length) return;
+    let pool = SERVICE_EVENTS.filter(e => !e.vipOnly || liveOrders.some(o => o.guestType === 'vip'));
+    const event = pick(pool);
+    const target = event.vipOnly ? liveOrders.find(o => o.guestType === 'vip') : pick(liveOrders);
+    state.serviceEventsShown += 1;
+    state.serviceEventTimer = randomRange(28, 40);
+    openServiceDialog(event, target.targetId);
+  }
+
+  function maybeOpenBanquetComplaint() {
+    if (!state.level.isBanquet || state.banquetWave !== 2 || state.banquetComplaintShown || state.levelElapsed < 8) return;
+    state.banquetComplaintShown = true;
+    openServiceDialog(BANQUET_COMPLAINT, 207);
   }
 
   function deliverToTarget(target) {
@@ -688,6 +895,11 @@
 
   function advanceBanquetOrFinish() {
     if (!state.level.isBanquet) { finishLevel(); return; }
+    if (state.banquetWave === 2 && !state.banquetComplaintResolved) {
+      state.banquetPendingAdvance = true;
+      if (!state.banquetComplaintShown) { state.banquetComplaintShown = true; openServiceDialog(BANQUET_COMPLAINT, 207); }
+      return;
+    }
     if (state.banquetWave < BANQUET_WAVES.length - 1) {
       state.banquetWave += 1;
       state.inventory = [];
@@ -700,21 +912,25 @@
   }
 
   function computeBanquetRating() {
-    const dialog = state.banquetDialogScore;
-    const speed = clamp(Math.round((state.timeLeft / state.levelTime) * 100 + 35 - state.levelMistakes * 8), 0, 100);
-    const ideal = Math.max(600, state.levelDelivered * 175);
+    const answers = Math.round(((state.quizScore + state.serviceCorrect) / Math.max(1, BANQUET_QUIZ.length + state.serviceAnswered)) * 100);
+    const speed = clamp(Math.round(45 + (state.timeLeft / state.levelTime) * 75 - state.levelMistakes * 5), 0, 100);
+    const ideal = Math.max(1200, state.levelDelivered * 155);
     const route = clamp(Math.round((ideal / Math.max(ideal, state.routeDistance)) * 100), 0, 100);
-    const total = Math.round(dialog * 0.4 + speed * 0.35 + route * 0.25);
-    const grade = total < 50 ? 'ПЛОХО' : total < 80 ? 'СРЕДНЕ' : 'ХОРОШО';
-    return { dialog, speed, route, total, grade };
+    const errors = clamp(100 - state.levelMistakes * 18 - (state.badReview ? 55 : 0), 0, 100);
+    let total = Math.round(answers * 0.35 + speed * 0.30 + route * 0.20 + errors * 0.15);
+    let grade = total < 50 ? 'ПЛОХО' : total < 78 ? 'СРЕДНЕ' : 'ХОРОШО';
+    if (state.badReview && grade === 'ХОРОШО') grade = 'СРЕДНЕ';
+    if (state.badReview) total = Math.min(total, 77);
+    return { dialog: answers, speed, route, errors, total, grade, badReview: state.badReview, compliment: state.banquetCompliment };
   }
 
   function finishLevel() {
     if (state.mode !== 'playing') return;
     if (state.level.isBanquet) {
-      state.completedStars[state.levelIndex] = 3;
-      saveProgress();
       state.lastResult = computeBanquetRating();
+      const banquetStars = state.lastResult.grade === 'ХОРОШО' ? 3 : state.lastResult.grade === 'СРЕДНЕ' ? 2 : 1;
+      state.completedStars[state.levelIndex] = Math.max(state.completedStars[state.levelIndex], banquetStars);
+      saveProgress();
       state.mode = 'banquetResult';
       playTone(720, 0.08, 'square', 0.05);
       setTimeout(() => playTone(960, 0.08, 'square', 0.05), 90);
@@ -761,8 +977,8 @@
     state.levelElapsed += dt; state.timeLeft -= dt;
     if (state.timeLeft <= 0) { state.timeLeft = 0; failLevel(state.phase === 'hall' ? 'Зал не дождался.' : 'Бар не вывез.'); return; }
     if (state.readyFlash > 0) state.readyFlash -= dt;
-    if (state.runnerEffect) { state.runnerEffect.time -= dt; if (state.runnerEffect.time <= 0) state.runnerEffect = null; }
-    updateKitchen(dt); updatePatience(dt); updateMovement(dt); updateNPCs(dt);
+    if (state.runnerNotice) { state.runnerNotice.time -= dt; if (state.runnerNotice.time <= 0) state.runnerNotice = null; }
+    updateKitchen(dt); updatePatience(dt); updateMovement(dt); updateNPCs(dt); updateRunner(dt); updateServiceEvents(dt); maybeOpenBanquetComplaint();
   }
 
   function updateKitchen(dt) {
@@ -815,16 +1031,22 @@
   function updateNPCs(dt) {
     if (!state.npcs) return;
     const lyuba = state.npcs.lyuba;
-    const targetL = lyuba.path[lyuba.pathIndex];
-    moveNpcToward(lyuba, targetL, dt);
-    if (dist(lyuba.x, lyuba.y, targetL.x, targetL.y) < 14) lyuba.pathIndex = (lyuba.pathIndex + 1) % lyuba.path.length;
+    if (lyuba.pauseTime > 0) { lyuba.pauseTime -= dt; lyuba.moving = false; }
+    else {
+      const targetL = lyuba.path[lyuba.pathIndex];
+      moveNpcToward(lyuba, targetL, dt);
+      if (dist(lyuba.x, lyuba.y, targetL.x, targetL.y) < 14) {
+        lyuba.pathIndex = (lyuba.pathIndex + 1) % lyuba.path.length;
+        lyuba.pauseTime = randomRange(1.2, 2.8);
+      }
+    }
     lyuba.barkTimer -= dt;
     if (lyuba.speechTime > 0) lyuba.speechTime -= dt;
-    if (lyuba.barkTimer <= 0) { npcSpeak(lyuba, pick(lyuba.barks)); lyuba.barkTimer = 30; }
+    if (lyuba.barkTimer <= 0) { npcSpeak(lyuba, pick(lyuba.barks)); lyuba.barkTimer = randomRange(24, 34); }
 
     const mikhail = state.npcs.mikhail;
     mikhail.timer += dt;
-    if (!mikhail.patrol && mikhail.timer > 32) { mikhail.patrol = true; mikhail.timer = 0; mikhail.patrolIndex = 1; npcSpeak(mikhail, pick(mikhail.barks)); }
+    if (!mikhail.patrol && mikhail.timer > 24) { mikhail.patrol = true; mikhail.timer = 0; mikhail.patrolIndex = 1; npcSpeak(mikhail, pick(mikhail.barks)); }
     if (mikhail.speechTime > 0) mikhail.speechTime -= dt;
     if (mikhail.patrol) {
       const targetM = mikhail.path[mikhail.patrolIndex];
@@ -843,6 +1065,7 @@
     if (len < 1.5) { npc.moving = false; return; }
     npc.moving = true;
     npc.walkTime = (npc.walkTime || 0) + dt;
+    if (Math.abs(dx) > Math.abs(dy)) npc.dir = dx > 0 ? 'right' : 'left'; else npc.dir = dy > 0 ? 'down' : 'up';
     npc.x += (dx / len) * npc.speed * dt;
     npc.y += (dy / len) * npc.speed * dt;
   }
@@ -850,8 +1073,9 @@
 
   function draw() {
     ctx.clearRect(0, 0, W, H); ctx.fillStyle = '#050605'; ctx.fillRect(0, 0, W, H);
-    if (images.map) ctx.drawImage(images.map, 0, 0, W, H);
-    const gameLikeModes = ['playing', 'levelComplete', 'lose', 'banquetResult', 'win', 'shiftComplete'];
+    if (state.level?.isBanquet && ['playing','serviceDialog','banquetResult','lose','win'].includes(state.mode)) drawBanquetMap();
+    else if (images.map) ctx.drawImage(images.map, 0, 0, W, H);
+    const gameLikeModes = ['playing', 'serviceDialog', 'levelComplete', 'lose', 'banquetResult', 'win', 'shiftComplete'];
     if (gameLikeModes.includes(state.mode)) {
       drawGuests(); drawTableBadges(); drawNPCs(); drawRunnerEffect(); drawPlayer(); drawHUD();
     }
@@ -862,6 +1086,7 @@
     if (state.mode === 'levelSelect') drawLevelSelectOverlay();
     if (state.mode === 'cutscene') drawCutsceneOverlay();
     if (state.mode === 'quiz') drawQuizOverlay();
+    if (state.mode === 'serviceDialog') drawServiceDialogOverlay();
     if (state.mode === 'levelComplete') drawLevelCompleteOverlay();
     if (state.mode === 'shiftComplete') drawShiftCompleteOverlay();
     if (state.mode === 'banquetResult') drawBanquetResultOverlay();
@@ -870,7 +1095,69 @@
     if (state.mode === 'playing' && state.paused) drawPauseOverlay();
   }
 
+  function drawBanquetMap() {
+    // Warm, bespoke pixel-art hall. Every shape lands on a 4 px grid.
+    ctx.fillStyle = '#09120d'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#163426'; ctx.fillRect(392, 110, 744, 850);
+    ctx.fillStyle = '#0d241a'; ctx.fillRect(408, 126, 712, 818);
+    // Dark green wall with wooden wainscot and brass trim.
+    ctx.fillStyle = '#214c35'; ctx.fillRect(420, 138, 688, 120);
+    for (let x = 436; x < 1100; x += 64) { ctx.fillStyle = x % 128 ? '#285a3e' : '#1d442f'; ctx.fillRect(x, 150, 44, 92); }
+    ctx.fillStyle = '#c58b3d'; ctx.fillRect(420, 254, 688, 8);
+    ctx.fillStyle = '#684227'; ctx.fillRect(420, 262, 688, 700);
+    for (let y = 270; y < 960; y += 32) {
+      ctx.fillStyle = (y / 32) % 2 ? '#74492a' : '#684027'; ctx.fillRect(420, y, 688, 30);
+      for (let x = 440 + ((y / 32) % 2) * 26; x < 1100; x += 104) { ctx.fillStyle = '#3e2a20'; ctx.fillRect(x, y, 4, 30); }
+      ctx.fillStyle = 'rgba(242,182,91,.10)'; ctx.fillRect(420, y, 688, 3);
+    }
+    // Central woven rug.
+    ctx.fillStyle = '#143326'; ctx.fillRect(468, 298, 624, 536);
+    ctx.fillStyle = '#d29a48'; ctx.fillRect(476, 306, 608, 8); ctx.fillRect(476, 818, 608, 8);
+    ctx.fillRect(476, 306, 8, 520); ctx.fillRect(1076, 306, 8, 520);
+    for (let x = 500; x < 1070; x += 44) { ctx.fillStyle = x % 88 ? '#1d4633' : '#173b2b'; ctx.fillRect(x, 318, 24, 496); }
+    // Windows, warm sconces and hanging greenery.
+    for (const x of [468, 744, 1016]) {
+      ctx.fillStyle = '#071b18'; ctx.fillRect(x, 158, 76, 70); ctx.fillStyle = '#c58b3d'; ctx.fillRect(x - 4, 154, 84, 6); ctx.fillRect(x - 4, 228, 84, 6);
+      ctx.fillStyle = '#294b46'; ctx.fillRect(x + 6, 166, 28, 54); ctx.fillRect(x + 42, 166, 28, 54);
+      ctx.fillStyle = '#f7c66a'; ctx.fillRect(x + 34, 170, 8, 42);
+    }
+    for (const x of [570, 950]) {
+      ctx.fillStyle = 'rgba(255,194,94,.18)'; ctx.fillRect(x - 42, 194, 84, 84);
+      ctx.fillStyle = '#f6bd5d'; ctx.fillRect(x - 8, 198, 16, 28); ctx.fillStyle = '#fff0ae'; ctx.fillRect(x - 4, 202, 8, 18);
+    }
+    drawBanquetPlant(446, 274, 1); drawBanquetPlant(1080, 274, -1); drawBanquetPlant(446, 840, 1); drawBanquetPlant(1080, 840, -1);
+    // Large banquet table: carved base, white runner, place settings and candles.
+    const t = BANQUET_TABLE;
+    ctx.fillStyle = '#352116'; ctx.fillRect(t.x + 20, t.y + 24, t.w, t.h); ctx.fillRect(t.x + 36, t.y + t.h + 16, 36, 34); ctx.fillRect(t.x + t.w - 28, t.y + t.h + 16, 36, 34);
+    ctx.fillStyle = '#8b562c'; ctx.fillRect(t.x, t.y, t.w, t.h); ctx.fillStyle = '#a96b35'; ctx.fillRect(t.x + 8, t.y + 8, t.w - 16, t.h - 16);
+    ctx.fillStyle = '#f0dfbd'; ctx.fillRect(t.x + 180, t.y + 12, 108, t.h - 24); ctx.fillStyle = '#d4b989'; ctx.fillRect(t.x + 188, t.y + 12, 8, t.h - 24); ctx.fillRect(t.x + 272, t.y + 12, 8, t.h - 24);
+    for (const gx of [610,725,840,955]) { drawPlaceSetting(gx, 424, false); drawPlaceSetting(gx, 656, true); }
+    drawPlaceSetting(574, 540, false, true); drawPlaceSetting(990, 540, true, true);
+    for (const y of [470, 610]) { ctx.fillStyle = '#7a3b26'; ctx.fillRect(770, y, 24, 18); ctx.fillStyle = '#e9b34f'; ctx.fillRect(776, y - 18, 12, 22); ctx.fillStyle = '#fff2a6'; ctx.fillRect(780, y - 24, 5, 10); }
+    ctx.fillStyle = '#234d33'; ctx.fillRect(744, 526, 72, 30); ctx.fillStyle = '#e5b957'; ctx.fillRect(756, 518, 12, 18); ctx.fillRect(792, 518, 12, 18);
+    // Service station belongs to this room, not the old restaurant map.
+    ctx.fillStyle = '#231810'; ctx.fillRect(430, 846, 316, 112); ctx.fillStyle = '#8a572e'; ctx.fillRect(438, 850, 300, 92); ctx.fillStyle = '#d29a48'; ctx.fillRect(438, 850, 300, 8);
+    drawText('СЕРВИСНАЯ СТАНЦИЯ', 588, 932, 12, '#f3e7c6', 'center');
+  }
+
+  function drawBanquetPlant(x, y, flip) {
+    ctx.fillStyle = '#b16b37'; ctx.fillRect(x - 16, y + 42, 32, 30); ctx.fillStyle = '#704326'; ctx.fillRect(x - 12, y + 68, 24, 8);
+    ctx.fillStyle = '#225f3a'; ctx.fillRect(x - 6, y + 10, 12, 38);
+    for (const [ox,oy] of [[-20,0],[10,-8],[-26,22],[14,18],[-8,-22]]) { ctx.fillStyle = oy < 0 ? '#4e9a55' : '#337a46'; ctx.fillRect(x + ox * flip, y + oy, 24 * flip, 16); }
+  }
+
+  function drawPlaceSetting(x, y, bottom, side = false) {
+    ctx.fillStyle = '#d8c89d'; ctx.fillRect(x - 24, y - 12, 48, 24); ctx.fillStyle = '#f7efd8'; ctx.fillRect(x - 17, y - 9, 34, 18); ctx.fillStyle = '#bfc7be';
+    if (side) { ctx.fillRect(x - 4, y - 35, 8, 22); ctx.fillRect(x - 4, y + 14, 8, 22); }
+    else { ctx.fillRect(x - 36, y - 4, 18, 5); ctx.fillRect(x + 20, y - 4, 18, 5); }
+    ctx.fillStyle = bottom ? '#6f2432' : '#28543a'; ctx.fillRect(x - 8, y - 5, 16, 10);
+  }
+
   function drawGuests() {
+    if (state.level?.isBanquet) {
+      for (const guest of BANQUET_GUESTS) drawBanquetGuest(guest, orderByTarget(guest.id));
+      return;
+    }
     if (!state.orders?.length) return;
     if (state.phase === 'hall') {
       for (const order of state.orders) {
@@ -887,6 +1174,31 @@
         drawCustomer({ sprite, x: guest.drawX, y: guest.drawY, h: guest.h }, order);
       }
     }
+  }
+
+  function drawBanquetGuest(guest, order) {
+    const palettes = [
+      ['#e7b58a','#54372e','#315f48'], ['#b97954','#241b1b','#703245'],
+      ['#f0c7a0','#8a572e','#324f77'], ['#9b6047','#171718','#6d6332']
+    ];
+    const [skin,hair,coat] = palettes[guest.tone];
+    const active = order && !order.done;
+    const pulse = active && order.patience / order.patienceMax < .35 ? Math.sin(state.levelElapsed * 8) * 2 : 0;
+    const horizontal = guest.side === 'left' || guest.side === 'right';
+    const x = guest.x + (horizontal ? pulse : 0), y = guest.y + (!horizontal ? pulse : 0);
+    // Upholstered chair.
+    ctx.fillStyle = '#352116'; ctx.fillRect(x - 30, y - 22, 60, 70);
+    ctx.fillStyle = '#173f2e'; ctx.fillRect(x - 24, y - 16, 48, 56); ctx.fillStyle = '#c58b3d'; ctx.fillRect(x - 28, y + 38, 8, 22); ctx.fillRect(x + 20, y + 38, 8, 22);
+    // Pixel body and head, oriented toward the table.
+    ctx.fillStyle = coat; ctx.fillRect(x - 24, y - 4, 48, 46); ctx.fillStyle = skin; ctx.fillRect(x - 17, y - 38, 34, 34);
+    ctx.fillStyle = hair; ctx.fillRect(x - 19, y - 42, 38, 12); ctx.fillRect(x - 19, y - 34, 8, 18);
+    ctx.fillStyle = '#171b19';
+    if (guest.side === 'top') { ctx.fillRect(x - 10, y - 25, 5, 5); ctx.fillRect(x + 6, y - 25, 5, 5); }
+    else if (guest.side === 'bottom') { ctx.fillRect(x - 10, y - 29, 5, 5); ctx.fillRect(x + 6, y - 29, 5, 5); }
+    else { ctx.fillRect(x + (guest.side === 'left' ? 6 : -10), y - 27, 5, 5); }
+    ctx.fillStyle = skin;
+    if (horizontal) { ctx.fillRect(x + (guest.side === 'left' ? 20 : -34), y + 5, 14, 12); }
+    else { ctx.fillRect(x - 32, y + 4, 12, 14); ctx.fillRect(x + 20, y + 4, 12, 14); }
   }
 
   function drawCustomer(pl, order) {
@@ -908,10 +1220,12 @@
       const total = order.items.length;
       const doneCount = order.items.filter(it => it.done).length;
       const remaining = Math.max(0, total - doneCount);
-      const badgeText = state.phase === 'hall' ? `Стол ${target.name}` : `Гость ${target.name}`;
+      const badgeText = state.level?.isBanquet ? `Гость ${target.name}` : state.phase === 'hall' ? `Стол ${target.name}` : `Гость ${target.name}`;
       const subText = order.done ? 'готово ✓' : `${remaining}/${total} блюд`;
       const bx = target.x - 48;
-      const by = state.phase === 'hall' ? target.y - 105 : target.y - 88;
+      const by = state.level?.isBanquet
+        ? target.side === 'top' ? target.y - 112 : target.side === 'bottom' ? target.y + 62 : target.y - 112
+        : state.phase === 'hall' ? target.y - 105 : target.y - 88;
       const urgent = order.guestType === 'rush' || (order.patience / order.patienceMax) < 0.33;
       roundRect(bx, by, 96, 44, 10,
         order.done ? 'rgba(27,68,34,.78)' : 'rgba(7,10,8,.88)',
@@ -950,6 +1264,7 @@
     ctx.shadowOffsetY = 6;
     ctx.translate(x, y - h / 2 + bob);
     ctx.rotate(sway);
+    ctx.scale(npc.dir === 'left' ? -1 : 1, 1);
     ctx.drawImage(img, -w / 2, -h / 2, w, h);
     ctx.restore();
 
@@ -966,16 +1281,24 @@
   }
 
   function drawRunnerEffect() {
-    if (!state.runnerEffect || !images.runner) return;
-    const e = state.runnerEffect; const h = 92, w = images.runner.width * (h / images.runner.height);
-    ctx.save(); ctx.globalAlpha = clamp(e.time / 1.2, 0, 1); ctx.drawImage(images.runner, e.x - w / 2, e.y - h - 4, w, h); ctx.restore();
-    roundRect(e.x - 82, e.y - h - 36, 164, 24, 8, 'rgba(10,14,11,.88)', 'rgba(79,209,94,.45)', 2);
-    drawText(`Раннер → ${e.targetName}`, e.x, e.y - h - 22, 12, '#9cff83', 'center');
+    const r = state.runner;
+    if (r && images.runner) {
+      const h = 96, w = images.runner.width * (h / images.runner.height);
+      const bob = r.moving ? Math.sin(r.walkTime * 18) * 4 : 0;
+      const step = Math.sin(r.walkTime * 18);
+      ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.fillRect(r.x - 28 - step * 5, r.y - 8, 22, 7); ctx.fillRect(r.x + 6 + step * 5, r.y - 8, 22, 7);
+      ctx.save(); ctx.translate(r.x, r.y - h / 2 + bob); ctx.rotate(step * .025); ctx.scale(r.dir === 'left' ? -1 : 1, 1); ctx.drawImage(images.runner, -w / 2, -h / 2, w, h); ctx.restore();
+      drawText(r.phase === 'serving' ? 'подаёт заказ' : 'РАННЕР', r.x, r.y - h - 18, 11, '#9cff83', 'center');
+    }
+    if (state.runnerNotice) {
+      roundRect(W / 2 - 250, 256, 500, 38, 10, 'rgba(7,18,12,.94)', 'rgba(79,209,94,.55)', 2);
+      drawText(state.runnerNotice.text, W / 2, 276, 15, '#9cff83', 'center');
+    }
   }
 
   function drawPlayer() {
     const p = state.player;
-    const visualDir = p.dir; // v1.2: направление берём напрямую; сами right-спрайты уже зеркалированы правильно
+    const visualDir = p.dir;
     let suffix = `idle_${visualDir}`;
     if (state.inventory.length > 0) suffix = `carry_${visualDir}`;
     else if (p.moving) suffix = `walk_${visualDir}_${Math.floor(p.stepTime * 8) % 3}`;
@@ -990,18 +1313,18 @@
     const level = state.level || LEVELS[state.levelIndex] || LEVELS[0];
 
     // Top compact status bar — no more UI lasagna.
-    roundRect(14, 14, 610, 74, 12, 'rgba(7,10,8,.82)', 'rgba(243,189,82,.25)', 2);
+    roundRect(14, 14, 650, 78, 12, 'rgba(7,10,8,.90)', 'rgba(243,189,82,.30)', 2);
     drawText('SQER RUSH', 32, 38, 22, '#f3bd52', 'left');
-    drawText(`День ${state.selectedShift} · ${level.name}`, 32, 66, 15, '#f3e7c6', 'left');
+    drawText(`Смена ${state.selectedShift} · уровень ${state.levelIndex - shiftBounds(state.selectedShift).start + 1} · ${level.name}`, 32, 68, 14, '#f3e7c6', 'left');
     drawText(formatTime(state.timeLeft), 500, 38, 26, state.timeLeft < 12 ? '#ff665f' : '#4fd15e', 'right');
-    drawText(`счёт ${state.score}`, 500, 66, 15, '#f6d17c', 'right');
-    if (state.selectedShift === 2) drawText(`раннер ${state.runnerUses} · R`, 522, 66, 15, '#9fd0ff', 'left');
+    drawText(`счёт ${state.score} · комбо x${state.combo}`, 510, 68, 14, '#f6d17c', 'right');
+    if (state.selectedShift === 2) drawText(`R × ${state.runnerUses}`, 536, 40, 14, '#9fd0ff', 'left');
 
     // Tray panel tucked left.
     roundRect(14, 98, 390, 88, 12, 'rgba(7,10,8,.80)', 'rgba(243,189,82,.22)', 2);
-    drawText(state.phase === 'hall' ? 'Поднос' : 'Барный поднос', 32, 122, 16, '#f3e7c6', 'left');
+    drawText(state.phase === 'hall' ? `Поднос · ${state.inventory.length}/${state.maxTray}` : `Барный поднос · ${state.inventory.length}/${state.maxTray}`, 32, 122, 16, '#f3e7c6', 'left');
     const speedText = state.inventory.length <= 2 ? '100%' : state.inventory.length === 3 ? '82%' : '67%';
-    drawText(`скорость ${speedText}`, 315, 122, 13, state.inventory.length > 2 ? '#ffcf73' : 'rgba(243,231,198,.70)', 'right');
+    drawText(`скорость ${speedText} · Q убрать`, 380, 122, 12, state.inventory.length > 2 ? '#ffcf73' : 'rgba(243,231,198,.70)', 'right');
     for (let i = 0; i < state.maxTray; i++) {
       const x = 32 + i * 82;
       roundRect(x, 137, 62, 38, 8, 'rgba(20,24,20,.84)', 'rgba(160,130,70,.35)', 2);
@@ -1022,9 +1345,15 @@
     let title = state.phase === 'hall' ? 'Заказы' : 'Бар';
     if (state.level?.isBanquet) title = BANQUET_WAVES[state.banquetWave].name;
     drawText(title, x + 18, y + 28, 18, '#f3bd52', 'left');
-    drawText(`комбо x${state.combo}`, x + panelW - 18, y + 28, 14, '#9cff83', 'right');
+    drawText(state.level?.isBanquet ? `волна ${state.banquetWave + 1}/4` : `комбо x${state.combo}`, x + panelW - 18, y + 28, 14, '#9cff83', 'right');
+    if (state.level?.isBanquet) {
+      for (let i = 0; i < BANQUET_WAVES.length; i++) {
+        const px = x + 18 + i * 96;
+        roundRect(px, y + 43, 84, 8, 4, i < state.banquetWave ? '#4fd15e' : i === state.banquetWave ? '#f3bd52' : 'rgba(243,231,198,.18)', null, 0);
+      }
+    }
 
-    let rowY = y + 46;
+    let rowY = y + (state.level?.isBanquet ? 60 : 46);
     const maxRows = Math.floor((orderPanelH - 58) / rowH);
     for (let oi = 0; oi < Math.min(state.orders.length, maxRows); oi++) {
       const order = state.orders[oi];
@@ -1061,9 +1390,9 @@
   function drawSourceOptions() {
     const pass = nearSource();
     const items = activeSourceItems();
-    const x0 = state.phase === 'hall' ? 520 : 88;
-    const y0 = state.phase === 'hall' ? 306 : 546;
-    const title = state.phase === 'hall' ? 'Раздача' : 'Барная станция';
+    const x0 = state.level?.isBanquet ? 454 : state.phase === 'hall' ? 520 : 88;
+    const y0 = state.level?.isBanquet ? 866 : state.phase === 'hall' ? 306 : 546;
+    const title = state.level?.isBanquet ? 'Сервисная станция' : state.phase === 'hall' ? 'Раздача' : 'Барная станция';
     const w = items.length ? Math.max(246, items.length * 70 + 20) : 210;
     roundRect(x0 - 10, y0 - 30, w, 102, 12, 'rgba(7,10,8,.72)', pass ? 'rgba(79,209,94,.42)' : 'rgba(243,189,82,.22)', 2);
     drawText(title, x0 + 4, y0 - 12, 13, pass ? '#9cff83' : '#f3e7c6', 'left');
@@ -1189,6 +1518,24 @@
     if (img) { const h = 250; const w = img.width * (h / img.height); ctx.drawImage(img, W - 330, 285, w, h); }
   }
 
+  function drawServiceDialogOverlay() {
+    const e = state.serviceDialog; if (!e) return;
+    ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.72)'; ctx.fillRect(0, 0, W, H); ctx.restore();
+    roundRect(124, 118, W - 248, H - 236, 20, 'rgba(10,14,11,.97)', e.id === 'banquetComplaint' ? '#ff8b66' : 'rgba(243,189,82,.55)', 3);
+    drawText(e.title.toUpperCase(), W / 2, 178, 30, e.id === 'banquetComplaint' ? '#ffb08e' : '#f3bd52', 'center');
+    drawText(e.id === 'banquetComplaint' ? 'Обязательное сервисное решение' : 'Решение влияет на терпение, чаевые и оценку', W / 2, 218, 15, '#9cff83', 'center');
+    roundRect(172, 258, W - 344, 104, 14, 'rgba(36,26,18,.88)', 'rgba(243,189,82,.25)', 2);
+    drawMultiline(e.prompt, 208, 286, W - 416, 22, '#f3e7c6', 29);
+    for (let i = 0; i < e.options.length; i++) {
+      const y = 402 + i * 126;
+      roundRect(172, y, W - 344, 94, 14, 'rgba(16,24,18,.94)', 'rgba(243,189,82,.28)', 2);
+      roundRect(190, y + 20, 48, 48, 10, 'rgba(243,189,82,.13)', '#f3bd52', 2);
+      drawText(String(i + 1), 214, y + 45, 23, '#f3bd52', 'center');
+      drawMultiline(e.options[i], 262, y + 18, W - 470, 16, '#f3e7c6', 22);
+    }
+    drawText('Нажми 1 / 2 / 3', W / 2, H - 150, 17, '#9cff83', 'center');
+  }
+
   function drawQuizOverlay() {
     const q = state.quiz.questions[state.quiz.idx];
     ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.74)'; ctx.fillRect(0, 0, W, H); ctx.restore();
@@ -1227,16 +1574,28 @@
   }
 
   function drawBanquetResultOverlay() {
-    const r = state.lastResult || { dialog: 0, speed: 0, route: 0, total: 0, grade: 'СРЕДНЕ' };
-    const lines = [
-      `Качество ответов: ${r.dialog}%`,
-      `Скорость подачи: ${r.speed}%`,
-      `Маршрут: ${r.route}%`,
-      `Итог: ${r.total}% · Оценка: ${r.grade}`,
-      r.grade === 'ХОРОШО' ? 'Люба: «Ну вот можешь же, когда хочешь.»' : r.grade === 'СРЕДНЕ' ? 'Михаил: «Работать можно. Но осторожно.»' : 'Люба: «Это был не банкет. Это было расследование.»',
-      'ENTER / E / клик — финальный экран.'
+    const r = state.lastResult || { dialog: 0, speed: 0, route: 0, errors: 0, total: 0, grade: 'СРЕДНЕ', badReview: false };
+    ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.76)'; ctx.fillRect(0, 0, W, H); ctx.restore();
+    roundRect(170, 86, W - 340, H - 172, 22, 'rgba(9,18,13,.97)', 'rgba(243,189,82,.55)', 3);
+    drawText('ИТОГ БАНКЕТА', W / 2, 144, 38, '#f3bd52', 'center');
+    drawText(`ОЦЕНКА: ${r.grade} · ${r.total}%`, W / 2, 196, 27, r.grade === 'ХОРОШО' ? '#9cff83' : r.grade === 'СРЕДНЕ' ? '#f3bd52' : '#ff8b7e', 'center');
+    const metrics = [
+      ['Качество ответов · 35%', r.dialog], ['Скорость подачи · 30%', r.speed],
+      ['Маршрут · 20%', r.route], ['Ошибки и отзывы · 15%', r.errors]
     ];
-    drawOverlay('ИТОГ БАНКЕТА', 'Финальный экзамен по сервису закрыт.', lines, 860, 420);
+    metrics.forEach(([label,value], i) => {
+      const y = 270 + i * 82;
+      drawText(label, 250, y, 16, '#f3e7c6', 'left'); drawText(`${value}%`, W - 250, y, 16, value >= 78 ? '#9cff83' : value >= 50 ? '#f3bd52' : '#ff8b7e', 'right');
+      roundRect(250, y + 20, W - 500, 16, 6, 'rgba(255,255,255,.08)', null, 0);
+      roundRect(250, y + 20, (W - 500) * value / 100, 16, 6, value >= 78 ? '#4fd15e' : value >= 50 ? '#d8a642' : '#d95c55', null, 0);
+    });
+    roundRect(238, 608, W - 476, 72, 12, r.badReview ? 'rgba(90,24,22,.55)' : 'rgba(30,75,39,.48)', r.badReview ? '#ff665f' : '#4fd15e', 2);
+    drawText(`Плохой отзыв: ${r.badReview ? 'ДА' : 'НЕТ'} · Комплимент гостю: ${r.compliment ? 'ДА' : 'НЕТ'}`, W / 2, 644, 17, r.badReview ? '#ff9a8f' : '#9cff83', 'center');
+    const lyuba = r.grade === 'ХОРОШО' ? '«Вот теперь это похоже на сервис.»' : r.grade === 'СРЕДНЕ' ? '«Спасли вечер, но не расслабляемся.»' : '«Это был не банкет. Это было расследование.»';
+    const mikhail = r.badReview ? '«Отзыв зафиксирован. Итог выше среднего невозможен.»' : r.grade === 'ХОРОШО' ? '«Маршрут чистый. Таблицу можно закрывать.»' : '«Есть что разбирать по цифрам.»';
+    drawText(`Люба: ${lyuba}`, W / 2, 730, 15, '#f3e7c6', 'center');
+    drawText(`Михаил: ${mikhail}`, W / 2, 766, 15, '#c9dcff', 'center');
+    drawText('ENTER / E / клик — финальный экран', W / 2, H - 136, 16, '#9cff83', 'center');
   }
 
   function drawWinOverlay() {
@@ -1320,6 +1679,13 @@
       if (code === 'arrowdown' || code === 'keys') state.selectedMenuLevel = state.selectedMenuLevel >= b.end ? b.start : state.selectedMenuLevel + 1;
       if (code === 'escape') { state.mode = 'shiftSelect'; return; }
       if (code === 'enter' || code === 'keye' || code === 'space') handleStartAction();
+      return;
+    }
+    if (state.mode === 'serviceDialog') {
+      if (code.startsWith('digit') || code.startsWith('numpad')) {
+        const n = Number(code.replace('digit', '').replace('numpad', ''));
+        if (n >= 1 && n <= 3) answerServiceDialog(n - 1);
+      }
       return;
     }
     if (state.mode === 'quiz') {
